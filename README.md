@@ -1,50 +1,150 @@
-# Welcome to your Expo app 👋
+# 🔐 MyPasswordManager - 本地密码管理器
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+[![Expo](https://img.shields.io/badge/Expo-Go-000020?style=flat-square&logo=expo&logoColor=white)](https://expo.dev/)
+[![React Native](https://img.shields.io/badge/React_Native-v0.7x-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactnative.dev/)
+[![TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-## Get started
+一个基于 **React Native (Expo)** 开发的轻量级、离线优先的密码管理应用。专注于简洁的用户体验和数据隐私，所有数据仅存储在本地设备中。
 
-1. Install dependencies
+## ✨ 核心功能 (Features)
 
-   ```bash
-   npm install
-   ```
+### 🏠 账号管理 (Home)
+* **增删查改**：轻松添加、查看和删除账号信息。
+* **智能排序**：列表自动按网站名称 A-Z (支持中文拼音) 排序，查找更快捷。
+* **即时搜索**：支持通过网站名或用户名快速过滤账号。
+* **极速复制**：点击用户名或密码即可复制到剪贴板。
+    * *交互优化*：复制成功后提供震动反馈 (Haptic Feedback) 及图标变绿的视觉确认，无打扰式弹窗。
+* **隐私保护**：密码默认隐藏，点击“小眼睛”图标查看明文。
 
-2. Start the app
+### 🛠️ 工具箱 (Tools)
+* **强密码生成器**：
+    * 自定义长度 (6-32位)。
+    * 自定义字符组合 (大写、小写、数字、特殊符号)。
+    * 一键生成并复制，支持震动反馈。
 
-   ```bash
-   npx expo start
-   ```
+### 📂 数据导出与菜单
+* **侧边栏菜单**：优雅的透明模态侧滑菜单，集成高级功能入口。
+* **PDF 导出**：支持将所有账号数据生成为格式整齐的 PDF 表格。
+    * 调用系统原生分享 (Share Sheet)，支持保存到文件或发送至微信/QQ。
+* **关于页面**：折叠式关于信息，展示版本与版权。
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📱 界面预览 (Screenshots)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+> *建议在此处替换为你实际的应用截图*
 
-## Get a fresh project
+| 主页列表 | 添加账号 | 工具箱 | 侧边栏菜单 |
+|:---:|:---:|:---:|:---:|
+| <img src="./assets/images/screenshot-home.png" width="200" alt="Home" /> | <img src="./assets/images/screenshot-add.png" width="200" alt="Add" /> | <img src="./assets/images/screenshot-tools.png" width="200" alt="Tools" /> | <img src="./assets/images/screenshot-menu.png" width="200" alt="Menu" /> |
 
-When you're ready, run:
+*(注：请在 `assets/images/` 文件夹下放入你的截图，并重命名为对应名称，或者删除此表格)*
 
+---
+
+## 🛠 技术栈 (Tech Stack)
+
+| 类别 | 技术/库 | 说明 |
+| :--- | :--- | :--- |
+| **框架** | React Native / Expo SDK 50+ | 跨平台开发框架 |
+| **路由** | Expo Router (File-based) | 基于文件系统的路由管理 |
+| **语言** | TypeScript | 提供严格的类型安全 |
+| **存储** | Async Storage | 本地持久化数据存储 |
+| **UI 组件** | React Native Core Components | View, Text, FlatList, Modal 等 |
+| **图标** | Ionicons (@expo/vector-icons) | 矢量图标库 |
+| **功能库** | expo-clipboard | 剪贴板操作 |
+| **功能库** | expo-print & expo-sharing | PDF 生成与文件分享 |
+| **功能库** | expo-haptics / Vibration | 震动触觉反馈 |
+
+---
+
+## 🚀 快速开始 (Getting Started)
+
+### 1. 环境准备
+确保你的电脑已安装 [Node.js](https://nodejs.org/) 和 git。
+
+### 2. 克隆项目
 ```bash
-npm run reset-project
+git clone [https://github.com/your-username/my-password-manager.git](https://github.com/your-username/my-password-manager.git)
+cd my-password-manager
+好的，这是从“快速开始”部分开始的完整 Markdown 内容，你可以直接复制：
+
+```markdown
+## 🚀 快速开始 (Getting Started)
+
+### 1. 环境准备
+确保你的电脑已安装 [Node.js](https://nodejs.org/) 和 git。
+
+### 2. 克隆项目
+```bash
+git clone [https://github.com/your-username/my-password-manager.git](https://github.com/your-username/my-password-manager.git)
+cd my-password-manager
+
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 3. 安装依赖
 
-## Learn more
+```bash
+npm install
+# 或者
+npx expo install
 
-To learn more about developing your project with Expo, look at the following resources:
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 4. 运行项目
 
-## Join the community
+```bash
+npx expo start
 
-Join our community of developers creating universal apps.
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+* **Android**: 按 `a` 打开 Android 模拟器，或使用 Expo Go App 扫码。
+* **iOS**: 按 `i` 打开 iOS 模拟器 (仅限 Mac)。
+
+---
+
+## 📦 打包与发布 (Build APK)
+
+本项目使用 **EAS Build** 进行云端打包，可直接生成 Android 安装包 (.apk)。
+
+### 1. 安装 EAS CLI
+
+```bash
+npm install -g eas-cli
+eas login
+
+```
+
+### 2. 配置构建环境
+
+项目已配置 `eas.json` 用于生成本地安装包 (APK) 而不是上传商店的 AAB。
+
+```bash
+# 执行云端构建 (Android APK)
+eas build -p android --profile preview
+
+```
+
+> **提示**：如果在中国大陆网络环境下上传失败，请在终端设置代理（例如 `set HTTPS_PROXY=http://127.0.0.1:7890`）。
+
+### 3. 下载安装
+
+构建完成后，终端会显示下载链接和二维码。下载 `.apk` 文件即可直接在 Android 手机上安装使用。
+
+---
+
+## 🔒 隐私与安全声明 (Privacy)
+
+* **本地存储**：本应用是一个**离线应用**。所有账号数据仅存储在你手机的本地存储空间 (`AsyncStorage`) 中，**不会**上传到任何云端服务器。
+* **数据导出**：使用 PDF 导出功能时，请注意生成的文件包含明文密码，请妥善保管导出后的文件。
+* **卸载警告**：卸载 App 会清除所有存储的账号数据，请在卸载前进行备份（导出 PDF）。
+
+---
+
+## 📄 许可证 (License)
+
+MIT License © 2025 [Your Name]
+
+```
+
+```
