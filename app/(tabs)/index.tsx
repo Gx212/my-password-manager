@@ -11,13 +11,20 @@ import {
   Platform,
   Alert,
   BackHandler,
-  Vibration, // 1. 引入震动组件
+  Vibration,
+  LayoutAnimation, // 1. 引入布局动画
+  UIManager,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
-// 引入存储工具和类型
+// 引入存储工具
 import { getAccounts, deleteAccount, Account } from '../../utils/storage';
+
+// 开启 Android 的 LayoutAnimation 支持
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -25,7 +32,6 @@ export default function HomeScreen() {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [accounts, setAccounts] = useState<Account[]>([]);
 
-  // 每次页面重新获得焦点时，刷新数据
   useFocusEffect(
     useCallback(() => {
       loadData();
@@ -34,12 +40,10 @@ export default function HomeScreen() {
 
   const loadData = async () => {
     const data = await getAccounts();
-    // 按网站名称排序 (支持中文拼音和英文)
     data.sort((a, b) => a.siteName.localeCompare(b.siteName));
     setAccounts(data);
   };
 
-  // 处理删除逻辑
   const handleDelete = (id: string) => {
     Alert.alert(
       "确认删除",
@@ -51,14 +55,27 @@ export default function HomeScreen() {
           style: "destructive",
           onPress: async () => {
             await deleteAccount(id);
-            loadData(); // 删除后刷新列表
+            loadData();
           }
         }
       ]
     );
   };
 
-  // 搜索过滤
+  // 跳转编辑页面
+  const handleEdit = (item: Account) => {
+    router.push({
+      pathname: '/add-account',
+      params: {
+        id: item.id,
+        siteName: item.siteName,
+        username: item.username,
+        password: item.password
+      }
+    });
+  };
+
+  // --- 搜索逻辑 ---
   const filteredAccounts = accounts.filter(item =>
     item.siteName.toLowerCase().includes(searchText.toLowerCase()) ||
     item.username.toLowerCase().includes(searchText.toLowerCase())
@@ -71,7 +88,6 @@ export default function HomeScreen() {
     setSearchText('');
   };
 
-  // 安卓物理返回键监听
   useEffect(() => {
     const backAction = () => {
       if (isSearchActive) {
@@ -92,33 +108,26 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      {/* --- 顶部导航栏 (Header) --- */}
+      {/* --- 顶部 Header --- */}
       <View style={styles.headerWrapper}>
         {!isSearchActive ? (
-          // --- 状态 A: 正常模式 ---
           <View style={styles.normalHeader}>
-            <TouchableOpacity
-              onPress={() => router.push('/menu')}
-              style={styles.headerIconButton}
-            >
+            <TouchableOpacity onPress={() => router.push('/menu')} style={styles.headerIconButton}>
               <Ionicons name="menu" size={28} color="#333" />
             </TouchableOpacity>
-
             <Text style={styles.headerTitle}>密码管理</Text>
-
             <TouchableOpacity onPress={startSearch} style={styles.headerIconButton}>
               <Ionicons name="search" size={24} color="#333" />
             </TouchableOpacity>
           </View>
         ) : (
-          // --- 状态 B: 搜索模式 ---
           <View style={styles.searchHeader}>
             <TouchableOpacity onPress={stopSearch} style={styles.headerIconButton}>
               <Ionicons name="arrow-back" size={24} color="#333" />
             </TouchableOpacity>
             <TextInput
               style={styles.searchInput}
-              placeholder="search..."
+              placeholder="搜索..."
               placeholderTextColor="#999"
               value={searchText}
               onChangeText={setSearchText}
@@ -140,7 +149,13 @@ export default function HomeScreen() {
           data={filteredAccounts}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => <AccountCard item={item} onDelete={handleDelete} />}
+          renderItem={({ item }) => (
+            <AccountCard
+              item={item}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+            />
+          )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               {accounts.length === 0 && searchText === '' ? (
@@ -159,7 +174,6 @@ export default function HomeScreen() {
         />
       </View>
 
-      {/* --- 悬浮添加按钮 (FAB) --- */}
       <TouchableOpacity style={styles.fab} onPress={handleAddPress} activeOpacity={0.8}>
         <Ionicons name="add" size={32} color="#fff" />
       </TouchableOpacity>
@@ -167,25 +181,36 @@ export default function HomeScreen() {
   );
 }
 
-// --- 子组件：AccountCard ---
-const AccountCard = ({ item, onDelete }: { item: Account, onDelete: (id: string) => void }) => {
+// --- 改造后的 AccountCard 组件 ---
+const AccountCard = ({
+  item,
+  onDelete,
+  onEdit
+}: {
+  item: Account,
+  onDelete: (id: string) => void,
+  onEdit: (item: Account) => void
+}) => {
   const [showPassword, setShowPassword] = useState(false);
-  // 2. 新增状态：控制复制成功的视觉反馈
   const [isPassCopied, setIsPassCopied] = useState(false);
   const [isUserCopied, setIsUserCopied] = useState(false);
 
-  // 复制密码逻辑 (无弹窗，仅图标变化+震动)
+  // 新增：展开状态
+  const [expanded, setExpanded] = useState(false);
+
+  // 切换展开/折叠
+  const toggleExpand = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); // 动画效果
+    setExpanded(!expanded);
+  };
+
   const copyPassword = async () => {
     await Clipboard.setStringAsync(item.password);
-    // 震动 50毫秒
     Vibration.vibrate(50);
-    // 切换图标状态
     setIsPassCopied(true);
-    // 1.5秒后恢复
     setTimeout(() => setIsPassCopied(false), 1500);
   };
 
-  // 复制用户名逻辑 (无弹窗，仅图标变化+震动)
   const copyUsername = async () => {
     await Clipboard.setStringAsync(item.username);
     Vibration.vibrate(50);
@@ -194,7 +219,12 @@ const AccountCard = ({ item, onDelete }: { item: Account, onDelete: (id: string)
   };
 
   return (
-    <View style={styles.card}>
+    // 使用 TouchableOpacity 包裹整个卡片，实现点击展开
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.9}
+      onPress={toggleExpand}
+    >
       <View style={styles.cardHeader}>
         <View style={styles.iconContainer}>
           <Text style={styles.iconText}>{item.icon}</Text>
@@ -202,60 +232,78 @@ const AccountCard = ({ item, onDelete }: { item: Account, onDelete: (id: string)
         <View style={styles.cardInfo}>
           <Text style={styles.siteName}>{item.siteName}</Text>
 
-          {/* 可点击的用户名行 */}
+          {/* 用户名区域 - 注意：这里需要阻止事件冒泡，否则点复制也会触发折叠 */}
           <TouchableOpacity
             style={styles.usernameRow}
             onPress={copyUsername}
             activeOpacity={0.6}
           >
             <Text style={styles.username}>{item.username}</Text>
-            {/* 动态切换图标：如果复制了显示绿色勾勾，否则显示灰色复制图标 */}
             <Ionicons
               name={isUserCopied ? "checkmark-circle" : "copy-outline"}
               size={14}
-              color={isUserCopied ? "#10b981" : "#999"} // #10b981 是好看的绿色
+              color={isUserCopied ? "#10b981" : "#999"}
               style={styles.usernameCopyIcon}
             />
-            {/* 可选：加个小文字提示 */}
             {isUserCopied && <Text style={styles.copiedTip}>已复制</Text>}
           </TouchableOpacity>
         </View>
+
+        {/* 右侧指示箭头 */}
+        <Ionicons
+          name={expanded ? "chevron-up" : "chevron-down"}
+          size={20}
+          color="#ddd"
+          style={{ marginLeft: 8 }}
+        />
       </View>
 
       <View style={styles.divider} />
 
+      {/* 密码行 */}
       <View style={styles.passwordRow}>
         <Text style={styles.passwordLabel}>密码：</Text>
         <Text style={styles.passwordText}>
           {showPassword ? item.password : '••••••••••••'}
         </Text>
         <View style={styles.actions}>
-          {/* 切换显示密码 */}
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.actionBtn}>
             <Ionicons name={showPassword ? "eye-off" : "eye"} size={22} color="#555" />
           </TouchableOpacity>
 
-          {/* 复制密码按钮 - 动态图标 */}
           <TouchableOpacity onPress={copyPassword} style={styles.actionBtn}>
             <Ionicons
               name={isPassCopied ? "checkmark-circle" : "copy-outline"}
               size={22}
-              // 复制成功变绿，平时灰色
               color={isPassCopied ? "#10b981" : "#555"}
             />
           </TouchableOpacity>
 
-          {/* 删除按钮 */}
           <TouchableOpacity onPress={() => onDelete(item.id)} style={styles.actionBtn}>
-            <Ionicons name="trash-outline" size={20} color="#ef4444" />
+            <Ionicons name="trash-outline" size={22} color="#ef4444" />
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+
+      {/* --- 展开的编辑区域 --- */}
+      {expanded && (
+        <View style={styles.expandedContent}>
+          <View style={styles.divider} />
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => onEdit(item)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="create-outline" size={20} color="#4f46e5" style={{ marginRight: 8 }} />
+            <Text style={styles.editButtonText}>编辑账号信息</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+    </TouchableOpacity>
   );
 };
 
-// --- 样式定义 ---
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -294,6 +342,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginRight: 10,
     height: '100%',
+    fontFamily: 'Inter-Regular',
   },
   headerIconButton: {
     padding: 8,
@@ -399,6 +448,26 @@ const styles = StyleSheet.create({
     padding: 8,
     marginLeft: 4,
   },
+
+  // --- 新增样式 ---
+  expandedContent: {
+    // 展开区域不设高度，由内容撑开
+  },
+  editButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#e0e7ff', // 浅紫色背景
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 4,
+  },
+  editButtonText: {
+    color: '#4f46e5',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+
   fab: {
     position: 'absolute',
     right: 20,

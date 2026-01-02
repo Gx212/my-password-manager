@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,28 +10,41 @@ import {
   Alert,
   KeyboardAvoidingView,
   ScrollView,
-  Vibration, // 1. 引入震动
+  Vibration,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-// 引入存储工具
-import { addAccount, Account } from '../utils/storage';
+// 引入 updateAccount
+import { addAccount, updateAccount, Account } from '../utils/storage';
 
 export default function AddAccountScreen() {
   const router = useRouter();
+  // 1. 获取传入的参数
+  const params = useLocalSearchParams();
 
   const [siteName, setSiteName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // 状态控制
   const [isSaving, setIsSaving] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false); // 2. 新增成功状态
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // 判断是否为编辑模式
+  const isEditMode = !!params.id;
+
+  // 2. 初始化回显数据 (核心修复点)
+  useEffect(() => {
+    if (params.id) {
+      setSiteName(params.siteName as string || '');
+      setUsername(params.username as string || '');
+      setPassword(params.password as string || '');
+    }
+    // 【重要修复】这里必须是空数组 []，否则每输入一个字都会重置回原值
+  }, []);
 
   const handleSave = async () => {
     if (!siteName || !username || !password) {
-      // 错误提示依然保留 Alert，引起注意
       Alert.alert('提示', '请填写完整信息');
       return;
     }
@@ -39,32 +52,41 @@ export default function AddAccountScreen() {
     setIsSaving(true);
 
     try {
-      const newAccount: Account = {
-        id: Date.now().toString(),
-        siteName: siteName.trim(),
-        username: username.trim(),
-        password: password,
-        icon: siteName.trim().charAt(0).toUpperCase() || '?',
-      };
+      const iconChar = siteName.trim().charAt(0).toUpperCase() || '?';
 
-      await addAccount(newAccount);
+      if (isEditMode) {
+        // --- A. 编辑模式：更新 ---
+        const updatedAccount: Account = {
+          id: params.id as string,
+          siteName: siteName.trim(),
+          username: username.trim(),
+          password: password,
+          icon: iconChar,
+        };
+        await updateAccount(updatedAccount);
+      } else {
+        // --- B. 添加模式：新增 ---
+        const newAccount: Account = {
+          id: Date.now().toString(),
+          siteName: siteName.trim(),
+          username: username.trim(),
+          password: password,
+          icon: iconChar,
+        };
+        await addAccount(newAccount);
+      }
 
-      // --- 3. 成功后的反馈逻辑 ---
-
-      // 震动反馈
+      // --- 成功反馈 ---
       Vibration.vibrate(50);
-
-      // 切换到“成功状态” (按钮变绿)
       setIsSuccess(true);
 
-      // 1.5秒后自动返回上一页
       setTimeout(() => {
         router.back();
       }, 1500);
 
     } catch (error) {
       Alert.alert('错误', '保存失败，请重试');
-      setIsSaving(false); // 只有失败才需要重置 loading，成功了直接退出了
+      setIsSaving(false);
     }
   };
 
@@ -77,8 +99,12 @@ export default function AddAccountScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.formContainer}>
-          <Text style={styles.title}>添加新账号</Text>
-          <Text style={styles.subtitle}>请填写下方的账号详细信息</Text>
+          <Text style={styles.title}>
+            {isEditMode ? '编辑账号' : '添加新账号'}
+          </Text>
+          <Text style={styles.subtitle}>
+            {isEditMode ? '修改下方的账号详细信息' : '请填写下方的账号详细信息'}
+          </Text>
 
           {/* 网站名称 */}
           <View style={styles.inputGroup}>
@@ -90,7 +116,6 @@ export default function AddAccountScreen() {
                 placeholder="例如：Google, 淘宝"
                 value={siteName}
                 onChangeText={setSiteName}
-                // 如果正在保存或已成功，禁止编辑
                 editable={!isSaving && !isSuccess}
               />
             </View>
@@ -119,7 +144,7 @@ export default function AddAccountScreen() {
               <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.icon} />
               <TextInput
                 style={styles.input}
-                placeholder="请输入密码"
+                placeholder="输入密码"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
@@ -132,30 +157,31 @@ export default function AddAccountScreen() {
                   color="#666"
                 />
               </TouchableOpacity>
+
+
             </View>
           </View>
 
-          {/* --- 4. 动态变化的保存按钮 --- */}
+          {/* 保存按钮 */}
           <TouchableOpacity
             style={[
               styles.saveButton,
-              // 如果成功，背景变绿；如果正在保存(未成功)，透明度降低
               isSuccess ? styles.successButton : (isSaving && { opacity: 0.7 })
             ]}
             onPress={handleSave}
             activeOpacity={0.8}
-            disabled={isSaving || isSuccess} // 防止重复点击
+            disabled={isSaving || isSuccess}
           >
             {isSuccess ? (
-              // 成功状态：显示对勾图标和文字
               <View style={styles.buttonInner}>
                 <Ionicons name="checkmark-circle" size={24} color="#fff" style={{ marginRight: 8 }} />
-                <Text style={styles.saveButtonText}>已保存</Text>
+                <Text style={styles.saveButtonText}>
+                  {isEditMode ? '已更新' : '已保存'}
+                </Text>
               </View>
             ) : (
-              // 正常/加载状态
               <Text style={styles.saveButtonText}>
-                {isSaving ? '正在保存...' : '保存账号'}
+                {isSaving ? '正在保存...' : (isEditMode ? '更新账号' : '保存账号')}
               </Text>
             )}
           </TouchableOpacity>
@@ -183,10 +209,12 @@ const styles = StyleSheet.create({
   label: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 8, marginLeft: 4 },
   inputWrapper: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#f9f9f9', borderRadius: 12, borderWidth: 1, borderColor: '#eee', paddingHorizontal: 12, height: 56 },
   icon: { marginRight: 10 },
-  input: { flex: 1, fontSize: 16, color: '#333', height: '100%' },
+  input: {
+    flex: 1, fontSize: 16, color: '#333', height: '100%',
+  },
 
   saveButton: {
-    backgroundColor: '#4f46e5', // 默认紫色
+    backgroundColor: '#4f46e5',
     borderRadius: 16,
     height: 56,
     justifyContent: 'center',
@@ -198,9 +226,8 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4
   },
-  // 新增：成功状态的绿色按钮样式
   successButton: {
-    backgroundColor: '#10b981', // 漂亮的绿色
+    backgroundColor: '#10b981',
     shadowColor: '#10b981',
   },
   buttonInner: {
