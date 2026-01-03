@@ -2,7 +2,7 @@
   "expo": {
     "name": "my-password-manager",
     "slug": "my-password-manager",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mypasswordmanager",
