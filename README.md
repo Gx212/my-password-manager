@@ -36,11 +36,9 @@
 ---
 
 ## 📱 界面预览 (Screenshots)
-
-|                           主页列表                           |                           添加账号                           |                            工具箱                            |                          侧边栏菜单                          |
-| :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
-| <img src="D:\Documents\QQ Files\Tencent Files\3052007158\nt_qq\nt_data\Pic\2026-01\Ori\7f773449996c146cd598f2e5f7663182.jpeg" alt="7f773449996c146cd598f2e5f7663182" style="zoom:80%;" /> | <img src="D:\Documents\QQ Files\Tencent Files\3052007158\nt_qq\nt_data\Pic\2026-01\Ori\39e39bc911751ba71d749f367f3d0e94.jpg" alt="39e39bc911751ba71d749f367f3d0e94" style="zoom:80%;" /> | <img src="D:\Documents\QQ Files\Tencent Files\3052007158\nt_qq\nt_data\Pic\2026-01\Ori\021b0aeef6f570e494774687b6ccd94c.jpg" alt="021b0aeef6f570e494774687b6ccd94c" style="zoom:80%;" /> | <img src="D:\Documents\QQ Files\Tencent Files\3052007158\nt_qq\nt_data\Pic\2026-01\Ori\c18a6c1f096f40220a863fd14e81d86d.jpg" alt="c18a6c1f096f40220a863fd14e81d86d" style="zoom:80%;" /> |
-
+|主页列表|添加账号|工具箱|侧边菜单栏|
+| :---: | :---: | :---: | :----: |
+|<img src="https://github.com/user-attachments/assets/5d5cf972-3860-494c-a3b2-78306fda5bcf" width="200">|<img src="https://github.com/user-attachments/assets/de247585-e140-41cc-8de0-5f385a4bc174" width="200">|<img src="https://github.com/user-attachments/assets/8fc10e36-fd36-4aa3-afd5-464150cac86b" width="200">|<img src="https://github.com/user-attachments/assets/87b67a7e-3862-4a98-aa4a-80f6bde0f242" width="200">|
 ---
 
 ## 🛠 技术栈 (Tech Stack)
